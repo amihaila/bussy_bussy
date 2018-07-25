@@ -102,10 +102,19 @@ static void LED_init() {
 #define LED_2_ON (LATC3 = 0)
 #define LED_2_OFF (LATC3 = 1)
 
-/*
 static void interrupt fuck_everything() {
     if (PIR5bits.TXB0IF) {
         PIR5bits.TXB0IF = 0;
+        return;
+    }
+
+    if (PIR5bits.TXB1IF) {
+        PIR5bits.TXB1IF = 0;
+        return;
+    }
+
+    if (PIR5bits.TXB2IF) {
+        PIR5bits.TXB2IF = 0;
         return;
     }
     
@@ -130,9 +139,30 @@ static void interrupt fuck_everything() {
         PIR5bits.RXB0IF = 0;
         return;
     }
-    //while (1);
+
+    if (PIR5bits.RXB1IF) {
+        RXB1CONbits.RXFUL = 0;
+        PIR5bits.RXB1IF = 0;
+        return;
+    }
+
+    if (PIR5bits.IRXIF) {
+        PIR5bits.IRXIF = 0;
+        return;
+    }
+
+    if (PIR5bits.ERRIF) {
+        PIR5bits.ERRIF = 0;
+        return;
+    }
+    while (1) {
+        //blink the LEDs at 2 Hz to signal an unhandled interrupt
+        LED_1_ON; LED_2_ON;
+        __delay_ms(250);
+        LED_1_OFF; LED_2_OFF;
+        __delay_ms(250);
+    }
 }
-*/
 
 void main(void) {
         

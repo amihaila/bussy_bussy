@@ -1,3 +1,6 @@
 **/nbproject/private/
 **/build/default/
 **/dist/default/
+**/nbproject/Makefile-*
+/fat_pic.X/build/aarons_setup/
+/fat_pic.X/dist/aarons_setup/

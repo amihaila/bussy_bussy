@@ -8,6 +8,7 @@
 #define _XTAL_FREQ 4000000
 #include "config.h"
 #include "plib.h"
+#include "LED.h"
 #include <stdint.h>
 
 #define RESET       0b11000000
@@ -106,6 +107,10 @@ void main(void) {
     // set up clock
     OSCCONbits.IRCF = 0x6;  // internal osc freq sel: 4 MHz
     OSCCONbits.SCS = 0x2;   // system clock sel
+
+    LED_SETUP;
+    LED_1_ON;
+    LED_2_ON;
     
     // set an led for testing
     // led is on RD2

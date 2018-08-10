@@ -142,9 +142,9 @@ void main(void) {
     while (1) {
         can_send(0x1);
         __delay_ms(50);
-        
-        can_send(0x2);
-        __delay_ms(50);
+//        
+//        can_send(0x2);
+//        __delay_ms(50);
     }
 
     while (1) {

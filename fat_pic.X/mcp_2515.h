@@ -3,10 +3,33 @@
 
 #include <stdint.h>
 
-void mcp_init();
+typedef struct {
+    // Timing params
+    // CNF1
+    uint8_t brp;
+    uint8_t sjw;
+
+    // CNF2
+    uint8_t btlmode;
+    uint8_t sam;
+    uint8_t seg1ph;
+    uint8_t prseg1;
+
+    // CNF3
+    uint8_t seg2ph;
+
+    // SPI driver
+    // TODO
+} can_t;
+
+void mcp_can_init(can_t *can_params);
+void mcp_can_send(uint16_t sid, uint8_t *data, uint8_t data_length);
+
+// helpers
 void mcp_write_reg(uint8_t addr, uint8_t data);
 uint8_t mcp_read_reg(uint8_t addr);
 
+// register addresses
 #define RXF0SIDH  0x00
 #define RXF3SIDH  0x10
 #define RXM0SIDH  0x20

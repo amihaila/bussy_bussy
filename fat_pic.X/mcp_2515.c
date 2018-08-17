@@ -12,9 +12,45 @@
 #define RX_STAT     0b10110000
 #define BIT_MOD     0b00000101
 
-void mcp_init() {
-    // sync mode, bus mode, phase
-    OpenSPI(SPI_FOSC_64, MODE_11, SMPMID);
+void mcp_can_init(can_t *can_params) {
+    TRISD3 = 0;
+    LATD3 = 1;
+
+    // set to config mode. top 3 bits are 0b100
+    mcp_write_reg(CANCTRL, 0x4 << 5);
+    while (!(mcp_read_reg(CANCTRL))) { }
+
+    mcp_write_reg(CNF1, can_params->sjw << 6 | can_params->brp);
+    mcp_write_reg(CNF2, can_params->btlmode << 7 | can_params->sam << 6
+        | can_params->seg1ph << 3 | can_params->prseg1);
+    mcp_write_reg(CNF3, can_params->seg2ph);
+
+    // set normal mode (top 3 bits = 0, set clock output)
+    // set one shot mode
+    mcp_write_reg(CANCTRL, 0xc);
+    // mcp_write_reg(CANCTRL, 0x4);
+
+
+    // normal mode: top 3 bits are 0
+    while (mcp_read_reg(CANCTRL) & 0xe0 != 0);   // wait for normal mode
+}
+
+
+void mcp_can_send(uint16_t sid, uint8_t *data, uint8_t data_length) {
+    mcp_write_reg(CANINTF, 0);     // clear interrupt flag register
+    mcp_write_reg(EFLG, 0);
+
+    mcp_write_reg(TXB0SIDH, (uint8_t) (sid >> 3));          // set sid
+    mcp_write_reg(TXB0SIDL, (sid & 0x7) << 5);              // set sid
+
+    // data registers are consecutive
+    for (int i = 0; i < data_length; ++i) {
+        mcp_write_reg(TXB0D0 + i, data[i]);
+    }
+
+    // data message w/ some number of bytes
+    mcp_write_reg(TXB0DLC, data_length);
+    mcp_write_reg(TXB0CTRL, 1 << 3);            // set txreq
 }
 
 void mcp_write_reg(uint8_t addr, uint8_t data) {

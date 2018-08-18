@@ -25,11 +25,16 @@ void mcp_can_init(can_t *can_params) {
         | can_params->seg1ph << 3 | can_params->prseg1);
     mcp_write_reg(CNF3, can_params->seg2ph);
 
+    // receive mode interrupts
+    mcp_write_reg(RXB0CTRL, 0b0110000);
+    mcp_write_reg(CANINTF, 0);      // fix later
+    //mcp_write_reg(CANINTE, 1);      // enable rxb0 interrupt
+    mcp_write_reg(BFPCTRL, 0b101);      // set rxb0 interrupt output    
+    
     // set normal mode (top 3 bits = 0, set clock output)
     // set one shot mode
     mcp_write_reg(CANCTRL, 0xc);
     // mcp_write_reg(CANCTRL, 0x4);
-
 
     // normal mode: top 3 bits are 0
     while (mcp_read_reg(CANCTRL) & 0xe0 != 0);   // wait for normal mode

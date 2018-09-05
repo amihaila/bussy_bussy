@@ -28,7 +28,7 @@ void mcp_can_init(can_t *can_params) {
     // receive mode interrupts
     mcp_write_reg(RXB0CTRL, 0b0110000);
     mcp_write_reg(CANINTF, 0);      // fix later
-    //mcp_write_reg(CANINTE, 1);      // enable rxb0 interrupt
+    mcp_write_reg(CANINTE, 1);      // enable rxb0 interrupt
     mcp_write_reg(BFPCTRL, 0b101);      // set rxb0 interrupt output    
     
     // set normal mode (top 3 bits = 0, set clock output)
@@ -40,22 +40,42 @@ void mcp_can_init(can_t *can_params) {
     while (mcp_read_reg(CANCTRL) & 0xe0 != 0);   // wait for normal mode
 }
 
-
-void mcp_can_send(uint16_t sid, uint8_t *data, uint8_t data_length) {
+void mcp_can_send(can_msg_t *msg) {
     mcp_write_reg(CANINTF, 0);     // clear interrupt flag register
     mcp_write_reg(EFLG, 0);
 
-    mcp_write_reg(TXB0SIDH, (uint8_t) (sid >> 3));          // set sid
-    mcp_write_reg(TXB0SIDL, (sid & 0x7) << 5);              // set sid
+    mcp_write_reg(TXB0SIDH, (uint8_t) (msg->sid >> 3));          // set sid
+    mcp_write_reg(TXB0SIDL, (msg->sid & 0x7) << 5);              // set sid
 
     // data registers are consecutive
-    for (int i = 0; i < data_length; ++i) {
-        mcp_write_reg(TXB0D0 + i, data[i]);
+    for (int i = 0; i < msg->data_len; ++i) {
+        mcp_write_reg(TXB0D0 + i, msg->data[i]);
     }
 
     // data message w/ some number of bytes
-    mcp_write_reg(TXB0DLC, data_length);
+    mcp_write_reg(TXB0DLC, msg->data_len);
     mcp_write_reg(TXB0CTRL, 1 << 3);            // set txreq
+}
+
+void mcp_can_receive(can_msg_t *msg) {
+    if (mcp_read_reg(CANINTF) & 0x1) {
+        // rxb0 is full
+        
+        uint8_t sid_h = mcp_read_reg(RXB0SIDH);
+        uint8_t sid_l = mcp_read_reg(RXB0SIDL);
+        msg->sid = ((uint16_t)sid_h << 3) | sid_l >> 5;
+
+        msg->data_len = mcp_read_reg(RXB0DLC) & 0x8;
+        for (int i = 0; i < msg->data_len; ++i) {
+            msg->data[i] = mcp_read_reg(RXB0D0 + i);
+        }
+
+    } else if (mcp_read_reg(CANINTF) & 0x2) {
+        // rxb1 is full - lower priority
+    }
+
+    // should fix this in the future
+    mcp_write_reg(CANINTF, 0);
 }
 
 void mcp_write_reg(uint8_t addr, uint8_t data) {

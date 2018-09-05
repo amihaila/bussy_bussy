@@ -193,11 +193,11 @@ void main(void) {
             LED_3_OFF;
         }
 
-//        can_send(0x2aa);
-//        __delay_ms(1000);
-//        
-//        can_send(0x444);
-//        __delay_ms(1000);
+        can_send(0x2aa);
+        __delay_ms(1000);
+
+        can_send(0x444);
+        __delay_ms(1000);
         
         CANSTAT;
         COMSTAT;

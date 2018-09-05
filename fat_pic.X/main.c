@@ -1,20 +1,17 @@
-/*
- * File:   main.c
- * Author: alexm
- *
- * Created on July 17, 2018, 7:16 PM
- */
-
 #define _XTAL_FREQ 4000000
 #include "mcp_2515.h"
 #include "config.h"
 #include "plib.h"
 #include <stdint.h>
+#include <string.h>
 
 #define LED_1_ON (LATD1 = 0)
 #define LED_1_OFF (LATD1 = 1)
 #define LED_2_ON (LATD2 = 0)
 #define LED_2_OFF (LATD2 = 1)
+
+// CAN receive buffer for testing purposes
+static can_msg_t rcv_can;
 
 static void interrupt rcv_test() {
     LED_1_ON;
@@ -22,10 +19,8 @@ static void interrupt rcv_test() {
     LED_1_OFF;
 
     if (INTCON3bits.INT2IF) { 
+        mcp_can_receive(&rcv_can);
         INTCON3bits.INT2IF = 0;
-        
-        // clear interrupts
-        mcp_write_reg(CANINTF, 0);
     }
 }
 
@@ -54,7 +49,7 @@ void main(void) {
     can_params.seg2ph = 0x4;          // tseg2 = 5 tq
     mcp_can_init(&can_params);
     
-    // set up interrupts - move these to can init later...
+    // set up interrupts - these are the responsibility of the MCU code, not canlib
     RCONbits.IPEN = 0;      // disable priority based interrupts
     INTCON3bits.INT2IF = 0;
     INTCON2bits.INTEDG2 = 0; // interrupt on falling edge
@@ -63,11 +58,24 @@ void main(void) {
 
     uint8_t data_0[] = {0xca, 0xfe, 0xba, 0xbe};
     uint8_t data_1[] = {0xde, 0xad, 0xbe, 0xef};
+    
+    can_msg_t msg0;
+    memcpy(msg0.data, data_0, sizeof(data_0));
+    msg0.sid = 0x2aa;
+    msg0.data_len = 4;
+    
+    can_msg_t msg1;
+    memcpy(msg1.data, data_1, sizeof(data_1));
+    msg1.sid = 0x444;
+    msg1.data_len = 4;
+    
     while (1) {
-        mcp_can_send(0x2aa, data_0, 4);
+        /*
+        mcp_can_send(&msg0);
         __delay_ms(1000);
-        mcp_can_send(0x444, data_1, 4);
+        mcp_can_send(&msg1);
         __delay_ms(1000);
+       */ 
     }
     return;
 }

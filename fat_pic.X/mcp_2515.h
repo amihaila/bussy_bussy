@@ -22,8 +22,15 @@ typedef struct {
     // TODO
 } can_t;
 
+typedef struct {
+    uint8_t data[8];
+    uint16_t sid;
+    uint8_t data_len;
+} can_msg_t;
+
 void mcp_can_init(can_t *can_params);
-void mcp_can_send(uint16_t sid, uint8_t *data, uint8_t data_length);
+void mcp_can_send(can_msg_t *msg);
+void mcp_can_receive(can_msg_t *msg);
 
 // helpers
 void mcp_write_reg(uint8_t addr, uint8_t data);

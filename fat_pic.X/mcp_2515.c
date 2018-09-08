@@ -65,7 +65,7 @@ void mcp_can_receive(can_msg_t *msg) {
         uint8_t sid_l = mcp_read_reg(RXB0SIDL);
         msg->sid = ((uint16_t)sid_h << 3) | sid_l >> 5;
 
-        msg->data_len = mcp_read_reg(RXB0DLC) & 0x8;
+        msg->data_len = mcp_read_reg(RXB0DLC) & 0xf;
         for (int i = 0; i < msg->data_len; ++i) {
             msg->data[i] = mcp_read_reg(RXB0D0 + i);
         }

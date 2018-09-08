@@ -1,5 +1,6 @@
 #define _XTAL_FREQ 4000000
-#include "mcp_2515.h"
+
+#include "../mcp2515/mcp_2515.h"    // I have stared into darkness
 #include "config.h"
 #include "plib.h"
 #include <stdint.h>
@@ -47,7 +48,7 @@ void main(void) {
     can_params.seg1ph = 0x4;          // tseg1 = 5 tq
     can_params.prseg1 = 0x0;          // tprseg1 = 1 tq
     can_params.seg2ph = 0x4;          // tseg2 = 5 tq
-    mcp_can_init(&can_params);
+    mcp_can_init(&can_params, ReadSPI, WriteSPI);
     
     // set up interrupts - these are the responsibility of the MCU code, not canlib
     RCONbits.IPEN = 0;      // disable priority based interrupts

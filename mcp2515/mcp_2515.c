@@ -1,6 +1,8 @@
 #include "mcp_2515.h"
 #include "plib.h"
 
+// FIXME: chip select pin handling
+
 //SPI command macros
 #define RESET       0b11000000
 #define READ        0b00000011
@@ -12,7 +14,30 @@
 #define RX_STAT     0b10110000
 #define BIT_MOD     0b00000101
 
-void mcp_can_init(can_t *can_params) {
+static uint8_t (*spi_read)(void);
+static void (*spi_write)(uint8_t data);
+
+static void mcp_write_reg(uint8_t addr, uint8_t data) {
+    LATD3 = 0;
+    spi_write(WRITE);
+    spi_write(addr);
+    spi_write(data);
+    LATD3 = 1;
+}
+
+static uint8_t mcp_read_reg(uint8_t addr) {
+    LATD3 = 0;
+    spi_write(READ);
+    spi_write(addr);
+    uint8_t ret =  spi_read();
+    LATD3 = 1;
+    return ret;
+}
+
+void mcp_can_init(can_t *can_params, uint8_t (*spi_read_fcn)(void), void (*spi_write_fcn)(uint8_t data)) {
+    spi_read = spi_read_fcn;
+    spi_write= spi_write_fcn;
+
     TRISD3 = 0;
     LATD3 = 1;
 
@@ -76,22 +101,5 @@ void mcp_can_receive(can_msg_t *msg) {
 
     // should fix this in the future
     mcp_write_reg(CANINTF, 0);
-}
-
-void mcp_write_reg(uint8_t addr, uint8_t data) {
-    LATD3 = 0;
-    WriteSPI(WRITE);
-    WriteSPI(addr);
-    WriteSPI(data);
-    LATD3 = 1;
-}
-
-uint8_t mcp_read_reg(uint8_t addr) {
-    LATD3 = 0;
-    WriteSPI(READ);
-    WriteSPI(addr);
-    uint8_t ret =  ReadSPI();
-    LATD3 = 1;
-    return ret;
 }
 

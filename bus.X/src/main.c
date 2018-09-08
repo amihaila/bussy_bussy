@@ -92,7 +92,13 @@ static void can_send(uint16_t sid) {
     TXB0SIDH = (sid >> 3);
     TXB0SIDL = ((sid & 0x7) << 5);
     TXB0DLCbits.TXRTR = 0;  //not an RTR, whatever that means
-    TXB0DLCbits.DLC = 0;    // send no bytes, just sid
+    TXB0DLCbits.DLC = 4;
+    
+    // let's send some data
+    TXB0D0 = 0xca;
+    TXB0D1 = 0xfe;
+    TXB0D2 = 0xba;
+    TXB0D3 = 0xbe;
 
     // politely request a cordial transmission to the ether
     TXB0CONbits.TXREQ = 1;

@@ -17,9 +17,6 @@ typedef struct {
 
     // CNF3
     uint8_t seg2ph;
-
-    // SPI driver
-    // TODO
 } can_t;
 
 typedef struct {
@@ -28,13 +25,9 @@ typedef struct {
     uint8_t data_len;
 } can_msg_t;
 
-void mcp_can_init(can_t *can_params);
+void mcp_can_init(can_t *can_params, uint8_t (*spi_read_fcn)(void), void (*spi_write_fcn)(uint8_t data));
 void mcp_can_send(can_msg_t *msg);
 void mcp_can_receive(can_msg_t *msg);
-
-// helpers
-void mcp_write_reg(uint8_t addr, uint8_t data);
-uint8_t mcp_read_reg(uint8_t addr);
 
 // register addresses
 #define RXF0SIDH  0x00
@@ -166,4 +159,4 @@ uint8_t mcp_read_reg(uint8_t addr);
 #define CANSTAT   0x0E
 #define CANCTRL   0x0F
 
-#endif //MC_2515_H_
+#endif //MCP_2515_H_

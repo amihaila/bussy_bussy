@@ -1,5 +1,4 @@
 #include "mcp_2515.h"
-#include "plib.h"
 
 // FIXME: chip select pin handling
 
@@ -16,30 +15,38 @@
 
 static uint8_t (*spi_read)(void);
 static void (*spi_write)(uint8_t data);
+static void (*cs_drive)(uint8_t state);
+
+static void mcp_send_reset() {
+    cs_drive(0);
+    spi_write(RESET);
+    cs_drive(1);
+}
 
 static void mcp_write_reg(uint8_t addr, uint8_t data) {
-    LATD3 = 0;
+    cs_drive(0);
     spi_write(WRITE);
     spi_write(addr);
     spi_write(data);
-    LATD3 = 1;
+    cs_drive(1);
 }
 
 static uint8_t mcp_read_reg(uint8_t addr) {
-    LATD3 = 0;
+    cs_drive(0);
     spi_write(READ);
     spi_write(addr);
     uint8_t ret =  spi_read();
-    LATD3 = 1;
+    cs_drive(1);
     return ret;
 }
 
-void mcp_can_init(can_t *can_params, uint8_t (*spi_read_fcn)(void), void (*spi_write_fcn)(uint8_t data)) {
+void mcp_can_init(can_t *can_params, uint8_t (*spi_read_fcn)(void), void (*spi_write_fcn)(uint8_t data), void (*cs_drive_fcn)(uint8_t state)) {
     spi_read = spi_read_fcn;
     spi_write= spi_write_fcn;
+    cs_drive = cs_drive_fcn;
 
-    TRISD3 = 0;
-    LATD3 = 1;
+    // start with chip select high, always
+    cs_drive(1);
 
     // set to config mode. top 3 bits are 0b100
     mcp_write_reg(CANCTRL, 0x4 << 5);
